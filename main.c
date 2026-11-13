@@ -120,6 +120,49 @@ void dropItem()
 }
 
 
+void checkNearbyItems()
+{
+	int item1, item2;
+	int found = 0;
+	//выводим инвентарь и сами предметы для удобства пользователя
+	printf("Инвентарь:\n");
+	Inventory();
+	printf("Список предметов:\n");
+	for (int i = 0; i < 10; i++)
+	{
+		if (itemNames[i] == 0)
+			printf("Слот %d: пусто\n", i);
+		else
+			printf("Предмет %d: %s\n", i, itemNames[i]);
+	}
+	printf("Введите ID первого предмета: ");
+	item1 = readInt();
+	printf("Введите ID второго предмета: ");
+	item2 = readInt();
+
+	if (item1 < 0 || item1 > 9 || item2 < 0 || item2 > 9)
+	{
+		printf("Неверный ID предмета!\n");
+		return;
+	}
+	//проверяем лежат ли предметы в соседних слотах
+	for (int i = 0; i < 9; i++)
+	{
+		if ((inventory[i] == item1 && inventory[i + 1] == item2) ||
+			(inventory[i] == item2 && inventory[i + 1] == item1))
+		{
+			printf("Предметы находятся рядом! Слоты: %d и %d\n", i, i + 1);
+			found = 1;
+		}
+	}
+
+	if (found == 0)
+	{
+		printf("Предметы не лежат рядом!\n");
+	}
+}
+
+
 
 int main()
 {
@@ -136,7 +179,7 @@ int main()
 		printf(" [3] Посмотреть инвентарь \n");
 		printf(" [4] Положить предмет в слот \n");
 		printf(" [5] Выбросить предмет \n");
-		printf(" [6] Выполнить задание по варианту \n");
+		printf(" [6] Проверка соседних ячеек \n");
 		int choice = readInt();
 		switch (choice)
 		{
@@ -178,7 +221,7 @@ int main()
 
 		case(6):
 		{
-			printf("функция6");
+			checkNearbyItems();
 			break;
 		}
 		default: printf("Не вырный пункт меню!\n"); break;
