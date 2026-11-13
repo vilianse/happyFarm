@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <locale.h> 
 #include <windows.h>
+#include <string.h>
 
 
 // глобальные переменные для хранения текущего дня и часа
@@ -83,10 +84,27 @@ void askName()
 		strcpy_s(username, sizeof(username), "Фермер");
 }
 
+
 //добавляем функцию для смены цвета текста в консоли, чтобы сделать интерфейс более приятным
 void setColor(int color)
 {
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
+//полностью украдено у чата гпт потому что хочется сделать чтобы учитывало все регистры а не получается
+void toLowerRussian(char* str)
+{
+	for (int i = 0; str[i]; i++)
+	{
+		unsigned char a = (unsigned char)str[i];
+
+		if (a == 0xD0 && (unsigned char)str[i + 1] >= 0x90 &&
+			(unsigned char)str[i + 1] <= 0x9F)
+			str[i + 1] += 0x20;
+
+		else if (a == 0xD0 && (unsigned char)str[i + 1] == 0x81)
+			str[i + 1] = 0x91;
+	}
 }
 
 //функция которая считает время работы
@@ -214,6 +232,50 @@ void checkNearbyItems()
 	}
 }
 
+//поиск предмета по названию в инвентаре
+void searchItemByName()
+{
+	char query[MAX_NAME_LEN];
+	int count = 0;
+
+	printf("Введите название предмета: ");
+	fgets(query, sizeof(query), stdin);
+	//проверяем, что введенная строка не превышает размер
+	if (strchr(query, '\n') == NULL)
+	{
+		while (getchar() != '\n');
+		printf("Слишком длинное название!\n");
+		return;
+	}
+	query[strcspn(query, "\r\n")] = '\0';
+
+	toLowerRussian(query);
+	//ищем предмет в массиве item_names
+	for (int i = 1; i < MAX_ITEMS; i++)
+	{
+		char name[MAX_NAME_LEN];
+		strcpy_s(name, MAX_NAME_LEN, item_names[i]);
+		toLowerRussian(name);
+
+		if (strcmp(name, query) == 0)
+		{
+			printf("Найден предмет: %s\nСлоты: ", item_names[i]);
+
+			for (int j = 0; j < MAX_ITEMS; j++)
+				if (inventory[j] == i)
+				{
+					printf("%d ", j);
+					count++;
+				}
+
+			printf("\nКоличество: %d\n", count);
+			return;
+		}
+	}
+
+	printf("Предмет не найден!\n");
+}
+
 //выводим меню в отдельную функцию
 void main_menu()
 {
@@ -232,13 +294,16 @@ void main_menu()
 		printf(" [4] Положить предмет в слот \n");
 		printf(" [5] Выбросить предмет \n");
 		printf(" [6] Проверка соседних ячеек \n");
+		printf(" [7] Поиск предмета в рюкзаке по названию \n");
+		printf(" [8] Записать состояние в дневник фермера \n");
+		printf(" [9] Расшифровать старые записи \n");
 		int choice = readInt();
 		switch (choice)
 		{
 		case(0):
 		{
 			//выход из игры
-			return 0;
+			return;
 		}
 
 		case(1):
@@ -282,6 +347,24 @@ void main_menu()
 		{
 			system("cls");
 			checkNearbyItems();
+			break;
+		}
+		case(7):
+		{
+			system("cls");
+			searchItemByName();
+			break;
+		}
+		case(8):
+		{
+			system("cls");
+			printf("функция 8");
+			break;
+		}
+		case(9):
+		{
+			system("cls");
+			printf("функция 9");
 			break;
 		}
 		default: printf("Не вырный пункт меню!\n"); system("cls");break; //добавила очистку и получилось приклоно
