@@ -317,7 +317,75 @@ void saveDiary()
 	printf("\n[+] Состояние фермы сохранено в diary.txt\n");
 }
 
+//доска объявлений
+//доска объявлений
+void boardOfQuests()
+{
+	// открываем файл input.txt для чтения и output.txt для записи
+	FILE* fin = NULL, * fout = NULL;
+	if (fopen_s(&fin, "input.txt", "r") != 0 || !fin)
+	{
+		printf("[!] input.txt не найден\n");
+		return;
+	}
+	if (fopen_s(&fout, "output.txt", "w") != 0 || !fout)
+	{
+		printf("[!] output.txt не создать\n");
+		fclose(fin);
 
+		return;
+	}
+
+
+	printf("=== Доска объявлений (день %d) ===\n\n", current_day);
+	fprintf(fout, "=== Доска объявлений (день %d) ===\n\n", current_day);
+	// читаем строки из input.txt и выводим их на экран и в output.txt
+	char line[256];
+	int total = 0, ready_count = 0;
+
+	while (fgets(line, sizeof(line), fin))
+	{
+		int day, reward;
+		char customer[64], item[32];
+
+		if (sscanf_s(line, "%d|%63[^|]|%31[^|]|%d",
+			&day, customer, (unsigned)sizeof(customer),
+			item, (unsigned)sizeof(item), &reward) != 4)
+			continue;
+
+		if (day > current_day) continue;
+		total++;
+
+
+		int ready = 0;
+		for (int i = 0; i < MAX_ITEMS; i++)
+		{
+			if (inventory[i] != 0 &&
+				strcmp(item_names[inventory[i]], item) == 0)
+			{
+				ready = 1;
+				break;
+			}
+		}
+		if (ready) ready_count++;
+
+		const char* status = ready ? "[ГОТОВО К СДАЧЕ]" : "[В ПРОЦЕССЕ]";
+
+
+		printf("День %d | %s | %s | %d | %s\n",
+			day, customer, item, reward, status);
+		fprintf(fout, "День %d | %s | %s | %d | %s\n",
+			day, customer, item, reward, status);
+	}
+
+	fclose(fin);
+
+	printf("\nИтого: доступно %d, готово к сдаче %d\n", total, ready_count);
+	fprintf(fout, "\nИтого: доступно %d, готово к сдаче %d\n", total, ready_count);
+
+	fclose(fout);
+	printf("\n[+] Результат сохранён в output.txt\n");
+}
 
 //выводим меню в отдельную функцию
 void main_menu()
@@ -339,7 +407,7 @@ void main_menu()
 		printf(" [6] Проверка соседних ячеек \n");
 		printf(" [7] Поиск предмета в рюкзаке по названию \n");
 		printf(" [8] Записать состояние в дневник фермера \n");
-		printf(" [9] Расшифровать старые записи \n");
+		printf(" [9] Доска объявлений \n");
 		int choice = readInt();
 		switch (choice)
 		{
@@ -407,7 +475,7 @@ void main_menu()
 		case(9):
 		{
 			system("cls");
-			printf("функция 9");
+			boardOfQuests();
 			break;
 		}
 		default: printf("Не вырный пункт меню!\n"); system("cls");break; //добавила очистку и получилось приклоно
