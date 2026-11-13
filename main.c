@@ -2,28 +2,36 @@
 #include <locale.h> 
 #include <windows.h>
 
+
 // глобальные переменные для хранения текущего дня и часа
 int current_day = 1;
 int current_hour = 8;
+//переменная могла быть использована
 int experience = 0;
+//имя пользователя
+char username[33];//учитываем нулевой символ в конце строки
 //захотелось добавить общее время работы(можно убрать но мне показалось это прикольным)
 
-//массив для инвентаря в него будем ложить id предметов
-int inventory[10] = { 0, 2, 3, 5, 4, 6, 7, 5, 8, 5 };
+#define MAX_ITEMS    10
+#define MAX_NAME_LEN 32
 
-//список предметов с которыми можно взаимодействовать
-char* itemNames[10] = {
-	"Пусто",
-	"Дерево",
-	"Камень",
-	"Семена",
-	"Железо",
-	"Яблоко",
-	"Лопата",
-	"Ветка",
-	"Мясо",
-	"Вода"
-};
+char item_names[MAX_ITEMS][MAX_NAME_LEN];
+
+// немного измененный массив инвентаря
+int inventory[MAX_ITEMS] = { 0, 2, 8, 5, 1, 8, 3, 5, 4, 2 };
+
+// заполняет массив дефолтными значениями в случае если не загрузится файл items
+void fillDefaultItems()
+{
+	const char* defaults[MAX_ITEMS] = {
+		"Пусто", "Дерево", "Камень", "Семена", "Железо",
+		"Яблоко", "Лопата", "Ветка", "Мясо", "Вода"
+	};
+	for (int i = 0; i < MAX_ITEMS; i++)
+		strcpy_s(item_names[i], MAX_NAME_LEN, defaults[i]); // заполняет инвентарь по дефолту
+}
+
+
 // функция для проверки ввода, очень поможет на всем промежутке работы
 int readInt()
 {
@@ -36,6 +44,43 @@ int readInt()
 	}
 	while (getchar() != '\n');
 	return value;
+}
+
+// функция для считывания предметов из файда
+void loadItems(const char* filename)
+{
+	fillDefaultItems();   // сначала заменяем массив дефолтными значениями на случай если в файле чего то будет не хватать
+
+	FILE* f = NULL;
+	if (fopen_s(&f, filename, "r") != 0 || f == NULL)
+	{
+		printf("[!] Файл %s не найден. Используются названия по умолчанию.\n", filename);
+		return;
+	}
+
+	char line[MAX_NAME_LEN];
+	int i = 0;
+	while (i < MAX_ITEMS && fgets(line, sizeof(line), f) != NULL)
+	{
+		line[strcspn(line, "\r\n")] = '\0';   // убираем \n и \r
+		if (line[0] != '\0')                  // пустые строки пропускаем
+		{
+			strcpy_s(item_names[i], MAX_NAME_LEN, line);
+			i++;
+		}
+	}
+	fclose(f);
+	printf("[+] Загружено предметов из %s: %d\n", filename, i);
+}
+
+// запрос имени фермера
+void askName()
+{
+	printf("Как тебя зовут, фермер?: ");
+	fgets(username, sizeof(username), stdin);
+	username[strcspn(username, "\r\n")] = '\0'; // обрезает конец
+	if (username[0] == '\0') //дает дефолтное имя
+		strcpy_s(username, sizeof(username), "Фермер");
 }
 
 //добавляем функцию для смены цвета текста в консоли, чтобы сделать интерфейс более приятным
@@ -79,9 +124,9 @@ void Inventory()
 {
 	//перебор и вывод интентаря
 	// был дан немгного другой пример но я считаю что такое оформление более понятно пользователю тем более про количество предметов и тому подобное слов не было да и лопаты 3 в кармане не может быть
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < MAX_ITEMS; i++)
 	{
-		printf("Слот %d: %s\n", i, itemNames[inventory[i]]);
+		printf("Слот %d: %s\n", i, item_names[inventory[i]]);
 
 	}
 
@@ -101,17 +146,17 @@ void swapItem()
 	//показываем все доступные предметы
 	for (int i = 0; i < 10; i++)
 	{
-		if (itemNames[i] == 0)
+		if (item_names[i] == 0)
 			printf("Слот %d: пусто\n", i);
 		else
-			printf("Предмет %d: %s\n", i, itemNames[i]);
+			printf("Предмет %d: %s\n", i, item_names[i]);
 	}
 	printf("Выберите предмет который хотете положить в слот:\n");
 	item = readInt();
 
 	if (item < 0 || item > 9) { printf("Неверный ввод\n"); return; }
 	inventory[slot] = item;
-	printf("В слот %d положен предмет %s\n", slot, itemNames[item]);
+	printf("В слот %d положен предмет %s\n", slot, item_names[item]);
 }
 
 void dropItem()
@@ -135,12 +180,12 @@ void checkNearbyItems()
 	printf("Инвентарь:\n");
 	Inventory();
 	printf("Список предметов:\n");
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < MAX_ITEMS; i++)
 	{
-		if (itemNames[i] == 0)
+		if (item_names[i] == 0)
 			printf("Слот %d: пусто\n", i);
 		else
-			printf("Предмет %d: %s\n", i, itemNames[i]);
+			printf("Предмет %d: %s\n", i, item_names[i]);
 	}
 	printf("Введите ID первого предмета: ");
 	item1 = readInt();
@@ -172,8 +217,11 @@ void checkNearbyItems()
 //выводим меню в отдельную функцию
 void main_menu()
 {
+	askName();
 	while (1)
 	{
+		setColor(5);
+		printf("Фермер: %s\n", username);   //  шапка с именем
 		setColor(14);
 		printf("====== МЕНЮ ========\n");
 		setColor(7);
@@ -249,5 +297,6 @@ int main()
 	SetConsoleCP(65001);
 	SetConsoleOutputCP(65001);
 	SetConsoleTitleA("happy farm");// добавляем название консоли чтобы было прикольно, хотелось еще ее по центру сделать но там слишком много странного кода
+	loadItems("items.txt");
 	main_menu();
 }
