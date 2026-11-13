@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <locale.h> 
+#include <windows.h>
+
 // глобальные переменные для хранения текущего дня и часа
 int current_day = 1;
 int current_hour = 8;
@@ -35,6 +38,11 @@ int readInt()
 	return value;
 }
 
+//добавляем функцию для смены цвета текста в консоли, чтобы сделать интерфейс более приятным
+void setColor(int color)
+{
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
 
 //функция которая считает время работы
 void work()
@@ -42,12 +50,11 @@ void work()
 
 	printf("Сколько вы хотите поработать:");
 	int workTime = readInt();
-	//сначалоа хотелось добавить ограничения но я передумала
-	//if (workTime > 12)
-	//{
-	//	printf("Не стоит так много работать");
-	//	return;
-	//}
+	if (workTime > 16)
+	{
+		printf("Не стоит так много работать((( \n");
+		//формальные ограничения можно добавить return если захочется 
+	}
 
 	if (workTime < 0)
 	{
@@ -63,9 +70,9 @@ void work()
 		current_hour = current_hour % 24;
 		experience += workTime;
 	}
+	setColor(10);
 	printf("Текущее время: день %d, время %d:00\n", current_day, current_hour);
-
-
+	setColor(7);
 }
 
 void Inventory()
@@ -162,17 +169,14 @@ void checkNearbyItems()
 	}
 }
 
-
-
-int main()
+//выводим меню в отдельную функцию
+void main_menu()
 {
-
-	// выводим меню на русском языке
-	SetConsoleCP(65001);
-	SetConsoleOutputCP(65001);
 	while (1)
 	{
-		printf("Меню \n");
+		setColor(14);
+		printf("====== МЕНЮ ========\n");
+		setColor(7);
 		printf(" [0] Выход \n");
 		printf(" [1] Посмотреть на часы \n");
 		printf(" [2] Промотать время (Поработать) \n");
@@ -191,44 +195,59 @@ int main()
 
 		case(1):
 		{
+			system("cls");
 			//пока что оставим так но возможно стоит вывести как отдельную функцию
+			setColor(10);
 			printf("Текущее время: день %d, время %d:00\n", current_day, current_hour);
+			setColor(7);
 			break;
 		}
 
 		case(2):
 		{
+			system("cls");
 			work();
 			break;
 		}
 		case(3):
 		{
+			system("cls");
 			Inventory();
 			break;
 		}
 
 		case(4):
 		{
+			system("cls");
 			swapItem();
 			break;
 		}
 
 		case(5):
 		{
+			system("cls");
 			dropItem();
 			break;
 		}
 
 		case(6):
 		{
+			system("cls");
 			checkNearbyItems();
 			break;
 		}
-		default: printf("Не вырный пункт меню!\n"); break;
+		default: printf("Не вырный пункт меню!\n"); system("cls");break; //добавила очистку и получилось приклоно
 		}
-
-
 	}
 
+}
 
+
+int main()
+{
+	// выводим меню на русском языке
+	SetConsoleCP(65001);
+	SetConsoleOutputCP(65001);
+	SetConsoleTitleA("happy farm");// добавляем название консоли чтобы было прикольно, хотелось еще ее по центру сделать но там слишком много странного кода
+	main_menu();
 }
