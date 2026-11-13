@@ -276,6 +276,49 @@ void searchItemByName()
 	printf("Предмет не найден!\n");
 }
 
+
+// Заполнение дневника текущим состоянием фермы
+void saveDiary()
+{
+	FILE* file = NULL;
+
+	// открываем/создаем файл для записи
+	if (fopen_s(&file, "diary.txt", "a") != 0 || file == NULL)
+	{
+		printf("[!] Не удалось открыть diary.txt\n");
+		return;
+	}
+	//записываем основную информацию
+	printf("Фермер: %s\n", username);
+	fprintf(file, "Фермер: %s\n", username);
+
+	printf("День: %d\n", current_day);
+	fprintf(file, "День: %d\n", current_day);
+
+	printf("Время: %02d:00\n", current_hour);
+	fprintf(file, "Время: %02d:00\n", current_hour);
+
+	printf("\nИнвентарь:\n");
+	fprintf(file, "\nИнвентарь:\n");
+
+	for (int i = 0; i < MAX_ITEMS; i++)
+	{
+		char* itemName = item_names[inventory[i]];
+
+		printf("Слот %d: %s\n", i, itemName);
+		fprintf(file, "Слот %d: %s\n", i, itemName);
+	}
+	//делаем разделитель чтобы было удобнее читать
+	printf("=====================================\n");
+	fprintf(file, "=====================================\n");
+
+	fclose(file);
+
+	printf("\n[+] Состояние фермы сохранено в diary.txt\n");
+}
+
+
+
 //выводим меню в отдельную функцию
 void main_menu()
 {
@@ -358,7 +401,7 @@ void main_menu()
 		case(8):
 		{
 			system("cls");
-			printf("функция 8");
+			saveDiary();
 			break;
 		}
 		case(9):
