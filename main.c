@@ -68,6 +68,58 @@ void work()
 
 }
 
+void Inventory()
+{
+	//перебор и вывод интентаря
+	// был дан немгного другой пример но я считаю что такое оформление более понятно пользователю тем более про количество предметов и тому подобное слов не было да и лопаты 3 в кармане не может быть
+	for (int i = 0; i < 10; i++)
+	{
+		printf("Слот %d: %s\n", i, itemNames[inventory[i]]);
+
+	}
+
+
+}
+
+
+void swapItem()
+{
+	int slot, item;
+	//показываем весь инвентарь
+	Inventory();
+	printf("Выберите слот который хотите заменить:\n");
+	slot = readInt();
+	//проверка на то чтобы число не выходило за диапазон
+	if (slot < 0 || slot > 9) { printf("Неверный номер слота!\n"); return; }
+	//показываем все доступные предметы
+	for (int i = 0; i < 10; i++)
+	{
+		if (itemNames[i] == 0)
+			printf("Слот %d: пусто\n", i);
+		else
+			printf("Предмет %d: %s\n", i, itemNames[i]);
+	}
+	printf("Выберите предмет который хотете положить в слот:\n");
+	item = readInt();
+
+	if (item < 0 || item > 9) { printf("Неверный ввод\n"); return; }
+	inventory[slot] = item;
+	printf("В слот %d положен предмет %s\n", slot, itemNames[item]);
+}
+
+void dropItem()
+{
+	//выводим инвентарь чтобы пользователь видел что у него есть
+	Inventory();
+	int slot;
+	printf("Выберите прдемт который хотите выбросить: ");
+	slot = readInt();
+	if (slot < 0 || slot > 9) { printf("Неверный номер слота!\n"); return; }
+	inventory[slot] = 0; // просто обнуляем слот
+	printf("Предмет безвозвратно выброшен(((\n");
+}
+
+
 
 int main()
 {
@@ -108,19 +160,19 @@ int main()
 		}
 		case(3):
 		{
-			printf("функция3");
+			Inventory();
 			break;
 		}
 
 		case(4):
 		{
-			printf("функция4");
+			swapItem();
 			break;
 		}
 
 		case(5):
 		{
-			printf("функция5");
+			dropItem();
 			break;
 		}
 
